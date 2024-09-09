@@ -3,6 +3,7 @@ package com.example.web_api.service;
 
 import com.example.web_api.dto.CategoryDTO;
 import com.example.web_api.entities.Category;
+import com.example.web_api.exception.DuplicateCategoryException;
 import com.example.web_api.repos.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class CategoryService {
     public Category createCategory(CategoryDTO categoryDTO) {
         Optional<Category> existingCategory = categoryRepository.findByName(categoryDTO.getName());
         if (existingCategory.isPresent()) {
-            throw new RuntimeException("Category with the same name already exists.");
+            throw new DuplicateCategoryException("Category with the same name already exists.");
         }
 
         Category category = new Category();
@@ -37,19 +38,18 @@ public class CategoryService {
     }
 
     public Category updateCategory(Long id, CategoryDTO categoryDTO) {
-        Optional<Category> existingCategory = categoryRepository.findByName(categoryDTO.getName());
-        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(id)) {
-            throw new RuntimeException("Category with the same name already exists.");
-        }
-
-        Category category = categoryRepository.findById(id)
+        Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        category.setName(categoryDTO.getName());
-        category.setDescription(categoryDTO.getDescription());
-        return categoryRepository.save(category);
-    }
+        Optional<Category> categoryByName = categoryRepository.findByName(categoryDTO.getName());
+        if (categoryByName.isPresent() && !categoryByName.get().getId().equals(id)) {
+            throw new DuplicateCategoryException("Category with the same name already exists.");
+        }
 
+        existingCategory.setName(categoryDTO.getName());
+        existingCategory.setDescription(categoryDTO.getDescription());
+        return categoryRepository.save(existingCategory);
+    }
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }

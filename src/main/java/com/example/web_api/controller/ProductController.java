@@ -2,9 +2,14 @@
 package com.example.web_api.controller;
 
 import com.example.web_api.dto.ProductDTO;
+import com.example.web_api.entities.Category;
 import com.example.web_api.entities.Product;
+import com.example.web_api.repos.CategoryRepository;
+import com.example.web_api.repos.ProductRepository;
+import com.example.web_api.service.CategoryService;
 import com.example.web_api.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +28,19 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        Product product = productService.getProductById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        ProductDTO productDTO = ProductDTO.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .categoryId(product.getCategory().getId())
+                .build();
+
+        return ResponseEntity.ok(productDTO);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -35,8 +49,12 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody ProductDTO productDTO) {
-        return productService.createProduct(productDTO);
+    public ResponseEntity<Product> createProduct(@RequestBody ProductDTO productDTO) {
+        if (productDTO.getCategoryId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productDTO));
     }
 
     @PutMapping("/{id}")

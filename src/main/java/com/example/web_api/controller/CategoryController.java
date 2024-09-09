@@ -3,12 +3,17 @@ package com.example.web_api.controller;
 
 import com.example.web_api.dto.CategoryDTO;
 import com.example.web_api.entities.Category;
+import com.example.web_api.exception.DuplicateCategoryException;
+import com.example.web_api.repos.CategoryRepository;
 import com.example.web_api.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -18,8 +23,9 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 
     @GetMapping("/{id}")
@@ -30,8 +36,9 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return categoryService.createCategory(categoryDTO);
+    public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
+        Category category = categoryService.createCategory(categoryDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(category);
     }
 
     @PutMapping("/{id}")
