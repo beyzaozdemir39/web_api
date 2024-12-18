@@ -5,6 +5,7 @@ import com.example.web_api.entities.Product;
 import com.example.web_api.entities.Category;
 import com.example.web_api.repos.ProductRepository;
 import com.example.web_api.repos.CategoryRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,8 @@ public class ProductService {
         return productRepository.findByCategoryId(categoryId);
     }
 
+    @Transactional
     public Product createProduct(ProductDTO productDTO) {
-
         Category category = categoryRepository.findById(productDTO.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -46,6 +47,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
     public Product updateProduct(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -61,6 +63,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }

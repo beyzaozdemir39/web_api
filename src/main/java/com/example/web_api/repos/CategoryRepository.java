@@ -1,4 +1,3 @@
-// CategoryRepository.java
 package com.example.web_api.repos;
 
 import com.example.web_api.entities.Category;

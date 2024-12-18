@@ -18,15 +18,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-
     @Autowired
     private ProductService productService;
-
     @GetMapping
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
-
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id)
@@ -42,12 +39,10 @@ public class ProductController {
 
         return ResponseEntity.ok(productDTO);
     }
-
     @GetMapping("/category/{categoryId}")
     public List<Product> getProductsByCategoryId(@PathVariable Long categoryId) {
         return productService.getProductsByCategoryId(categoryId);
     }
-
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductDTO productDTO) {
         if (productDTO.getCategoryId() == null) {
@@ -56,12 +51,10 @@ public class ProductController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productDTO));
     }
-
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productDTO));
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
