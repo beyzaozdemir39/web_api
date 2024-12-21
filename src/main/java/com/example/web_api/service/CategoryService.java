@@ -1,5 +1,4 @@
 package com.example.web_api.service;
-import com.example.web_api.dto.CategoryDTO;
 import com.example.web_api.entities.Category;
 import com.example.web_api.exception.DuplicateCategoryException;
 import com.example.web_api.repos.CategoryRepository;
@@ -9,41 +8,38 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
+
 @Service
 public class CategoryService {
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
+
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public Category updateCategory(Long id, Category updatedCategory) {
+        return categoryRepository.findById(id)
+                .map(category -> {
+                    category.setName(updatedCategory.getName());
+                    return categoryRepository.save(category);
+                })
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+    }
+
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
-    public Optional<Category> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
-    }
-    @Transactional
-    public Category createCategory(CategoryDTO categoryDTO) {
-        Optional<Category> existingCategory = categoryRepository.findByName(categoryDTO.getName());
-        if (existingCategory.isPresent()) {
-            throw new DuplicateCategoryException("Category with the same name already exists.");
-        }
-        Category category = new Category();
-        category.setName(categoryDTO.getName());
-        category.setDescription(categoryDTO.getDescription());
-        return categoryRepository.save(category);
-    }
-    @Transactional
-    public Category updateCategory(Long id, CategoryDTO categoryDTO) {
-        Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        Optional<Category> categoryByName = categoryRepository.findByName(categoryDTO.getName());
-        if (categoryByName.isPresent() && !categoryByName.get().getId().equals(id)) {
-            throw new DuplicateCategoryException("Category with the same name already exists.");
-        }
-        existingCategory.setName(categoryDTO.getName());
-        existingCategory.setDescription(categoryDTO.getDescription());
-        return categoryRepository.save(existingCategory);
-    }
-    @Transactional
+
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
+    }
+
+    public Optional<Category> getCategoryById(Long id) {
+        return categoryRepository.findById(id);
     }
 }

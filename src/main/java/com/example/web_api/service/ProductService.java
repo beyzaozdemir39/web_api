@@ -1,6 +1,5 @@
 package com.example.web_api.service;
 
-import com.example.web_api.dto.ProductDTO;
 import com.example.web_api.entities.Product;
 import com.example.web_api.entities.Category;
 import com.example.web_api.repos.ProductRepository;
@@ -15,56 +14,49 @@ import java.util.Optional;
 @Service
 public class ProductService {
 
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     @Autowired
-    private ProductRepository productRepository;
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+    }
+    @Transactional
+    public Product createProduct(Product product, Long categoryId) {
+        // Kategori kontrolü
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
+        product.setCategory(category); // Kategoriyi ürüne ata
+        return productRepository.save(product);
+    }
+    @Transactional
+    public Product updateProduct(Long id, Product updatedProduct, Long categoryId) {
+        return productRepository.findById(id)
+                .map(product -> {
+                    product.setName(updatedProduct.getName());
+                    product.setPrice(updatedProduct.getPrice());
+                    product.setStock(updatedProduct.getStock());
+                    Category category = categoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
+                    product.setCategory(category);
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+                    return productRepository.save(product);
+                })
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+    }
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
-    }
-
-    public List<Product> getProductsByCategoryId(Long categoryId) {
+    public List<Product> getProductsByCategory(Long categoryId) {
         return productRepository.findByCategoryId(categoryId);
     }
-
-    @Transactional
-    public Product createProduct(ProductDTO productDTO) {
-        Category category = categoryRepository.findById(productDTO.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-        Product product = new Product();
-        product.setName(productDTO.getName());
-        product.setDescription(productDTO.getDescription());
-        product.setPrice(productDTO.getPrice());
-        product.setCategory(category);
-
-        return productRepository.save(product);
-    }
-
-    @Transactional
-    public Product updateProduct(Long id, ProductDTO productDTO) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        product.setName(productDTO.getName());
-        product.setDescription(productDTO.getDescription());
-        product.setPrice(productDTO.getPrice());
-
-        Category category = categoryRepository.findById(productDTO.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        product.setCategory(category);
-
-        return productRepository.save(product);
-    }
-
     @Transactional
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
+    }
+    public Optional<Product> getProductById(Long id) {
+        return productRepository.findById(id);
     }
 }
